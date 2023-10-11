@@ -1,4 +1,4 @@
-This goal of this repository. is to allow users to reproduce results of [this](https://github.com) blog post that compared the performance of [PeerDB](https://peerdb.io) and [Airbyte](https://airbyte.com). All information regarding PeerDB and Airbyte internals is accurate as of October 2023, and might change in the future.
+This goal of this repository. is to allow users to reproduce results of [this](https://blog.peerdb.io/benchmarking-postgres-replication-peerdb-vs-airbyte) blog post that compared the performance of [PeerDB](https://peerdb.io) and [Airbyte](https://airbyte.com). All information regarding PeerDB and Airbyte internals is accurate as of October 2023, and might change in the future.
 
 ## Benchmark Setup
 The major components of the database were all provisioned in the `us-east-2` AWS region.
