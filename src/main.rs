@@ -3,6 +3,7 @@ use postgres::binary_copy::BinaryCopyInWriter;
 use postgres::config::SslMode;
 use postgres::types::{ToSql, Type};
 use postgres::{Client, Config, NoTls};
+use postgres_native_tls::MakeTlsConnector;
 use std::thread;
 use std::time::Instant;
 
@@ -38,6 +39,8 @@ struct Record {
 }
 
 // set the parameters of your database here.
+const USE_SSL: bool = false;
+
 fn initialize_client() -> Client {
     let mut config = Config::new();
     config.host("[HOST HERE]");
@@ -45,9 +48,16 @@ fn initialize_client() -> Client {
     config.user("[USER HERE]");
     config.password(r"[PASSWORD HERE]");
     config.dbname("[DATABASE HERE]");
-    config.ssl_mode(SslMode::Disable);
-
-    return config.connect(NoTls).unwrap();
+    
+    if USE_SSL {
+        config.ssl_mode(SslMode::Require);
+        let connector = native_tls::TlsConnector::new().unwrap();
+        let connector = MakeTlsConnector::new(connector);
+        config.connect(connector).unwrap()
+    } else {
+        config.ssl_mode(SslMode::Disable);
+        config.connect(NoTls).unwrap()
+    }
 }
 
 fn setup_table() {
@@ -87,7 +97,7 @@ fn processor(process_id: usize) {
     let mut rng = rand::thread_rng();
 
     for batch_id in 0..(TOTAL_BATCHES / PARALLELISM) {
-        let mut records = Vec::with_capacity(RECORDS_PER_BATCH as usize);
+        let mut records = Vec::with_capacity(RECORDS_PER_BATCH);
         for _ in 0..RECORDS_PER_BATCH {
             records.push(Record {
                 f1: rng.gen(),
@@ -156,13 +166,11 @@ fn processor(process_id: usize) {
         let row_count = copy_writer.finish().unwrap();
         if row_count as usize != RECORDS_PER_BATCH {
             error!(
-                "[Process/Batch #{}/#{}] Failed to write some rows: {}/{} rows written",
-                process_id, batch_id, row_count, RECORDS_PER_BATCH
+                "[Process/Batch #{process_id}/#{batch_id}] Failed to write some rows: {row_count}/{RECORDS_PER_BATCH} rows written"
             );
         } else {
             info!(
-                "[Process/Batch #{}/#{}] {} rows written",
-                process_id, batch_id, row_count
+                "[Process/Batch #{process_id}/#{batch_id}] {row_count} rows written"
             );
         }
     }
@@ -190,5 +198,4 @@ fn main() {
         (TOTAL_BATCHES * RECORDS_PER_BATCH) as f64 / elapsed.as_secs_f64()
     );
 
-    ()
 }
