@@ -7,7 +7,7 @@ use postgres_native_tls::MakeTlsConnector;
 use std::thread;
 use std::time::Instant;
 
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
 use rand::Rng;
 use time::Date;
 
@@ -94,24 +94,24 @@ fn setup_table() {
 
 fn processor(process_id: usize) {
     let mut client = initialize_client();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     for batch_id in 0..(TOTAL_BATCHES / PARALLELISM) {
         let mut records = Vec::with_capacity(RECORDS_PER_BATCH);
         for _ in 0..RECORDS_PER_BATCH {
             records.push(Record {
-                f1: rng.gen(),
-                f2: rng.gen(),
-                f3: rng.gen(),
-                f4: rng.gen(),
-                f5: rng.gen(),
-                f6: rng.gen(),
-                f7: rng.gen(),
+                f1: rng.random(),
+                f2: rng.random(),
+                f3: rng.random(),
+                f4: rng.random(),
+                f5: rng.random(),
+                f6: rng.random(),
+                f7: rng.random(),
                 f8: Alphanumeric.sample_string(&mut rng, RANDOM_STRING_LENGTH),
                 f9: Alphanumeric.sample_string(&mut rng, RANDOM_STRING_LENGTH),
-                f10: Date::from_ordinal_date(rng.gen_range(1..9999), rng.gen_range(1..365)).unwrap(),
-                f11: Date::from_ordinal_date(rng.gen_range(1..9999), rng.gen_range(1..365)).unwrap(),
-                f12: Date::from_ordinal_date(rng.gen_range(1..9999), rng.gen_range(1..365)).unwrap(),
+                f10: Date::from_ordinal_date(rng.random_range(1..9999), rng.random_range(1..365)).unwrap(),
+                f11: Date::from_ordinal_date(rng.random_range(1..9999), rng.random_range(1..365)).unwrap(),
+                f12: Date::from_ordinal_date(rng.random_range(1..9999), rng.random_range(1..365)).unwrap(),
                 f13: Alphanumeric.sample_string(&mut rng, RANDOM_STRING_LENGTH),
                 f14: Alphanumeric.sample_string(&mut rng, RANDOM_STRING_LENGTH),
                 f15: Alphanumeric.sample_string(&mut rng, RANDOM_STRING_LENGTH),
